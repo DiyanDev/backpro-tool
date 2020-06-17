@@ -1,0 +1,35 @@
+@tailwind base;
+
+@tailwind components;
+
+@tailwind utilities;
+
+.form-input{
+    @apply inline-block appearance-none bg-white border border-gray-400 px-2 py-2 rounded shadow;
+}
+form-input:hover{
+    @apply border-gray-100
+}
+
+.toggle__dot {
+    top: -.25rem;
+    left: -.25rem;
+    transition: all 0.3s ease-in-out;
+  }
+  
+input:checked ~ .toggle__dot {
+transform: translateX(100%);
+background-color: #4299e1;
+}
+table.epochs td{
+    @apply border border-gray-400 px-4 py-2;
+}
+table.epochs th{
+    @apply border border-gray-400 px-4 py-2 text-gray-800;
+}
+label{
+    @apply font-semibold text-gray-800 block mb-1 text-left;
+}
+.op0{
+    opacity: 0;
+}
