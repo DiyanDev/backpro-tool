@@ -129,7 +129,6 @@ import {NeuralNetwork} from '../assets/nn.js'
 import numberInput from './numberInput.vue'
 import errorChart from './errorChart.vue'
 import VueSlider from 'vue-slider-component'
-import 'vue-slider-component/theme/antd.css'
 export default {
   name: 'backPropagation',
   props: {

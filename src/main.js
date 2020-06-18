@@ -5,7 +5,6 @@ import './assets/tailwind.css'
 // import './assets/matrix.js'
 
 // var {Matrix} = require('./assets/matrix.js');
-
 Vue.config.productionTip = false
 
 new Vue({
