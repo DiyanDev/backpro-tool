@@ -50,7 +50,7 @@
               <div v-for="i in initialWeights_ih.rows" :key="i">
                 <div class="w-full md:w-1/2 mt-2 inline-block" v-for="j in initialWeights_ih.cols" :key="j">
                   <label>W<small class="mr-2">{{i}}{{j}}</small>
-                    <input type="number" class="form-input w-24 mr-1" placeholder="Weight value" v-model.number="initialWeights_ih.data[i-1][j-1]">
+                    <input type="number" min="-1"  max="1" step="0.1" class="form-input w-24 mr-1" placeholder="Weight value" v-model.number="initialWeights_ih.data[i-1][j-1]">
                   </label>
                 </div>
               </div>
@@ -59,12 +59,25 @@
             <h5 class="text-lg font-bold mb-3">Hidden to output weights</h5>
             <div v-for="k in initialWeights_ho.rows" :key="k">
                 <label class="w-full md:w-1/2 mt-2 inline-block" v-for="m in initialWeights_ho.cols" :key="m">W<small class="mr-2">{{k}}{{m}}</small>
-                  <input type="number" class="form-input w-24 mr-1" placeholder="Weight value" v-model.number="initialWeights_ho.data[k-1][m-1]">
+                  <input type="number" min="-1" max="1" step="0.1" class="form-input w-24 mr-1" placeholder="Weight value" v-model.number="initialWeights_ho.data[k-1][m-1]">
                 </label>
             </div>
             </div>
           </div>
-          <label class="inline-block">Epochs<input type="number" class="form-input w-16 ml-1 mr-1" placeholder="w6" v-model.number="epochs"></label><button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4" @click.prevent="testCompute(epochs)">Start</button>
+          <label class="inline-block">Epochs<input type="number" class="form-input w-16 ml-1 mr-1" placeholder="w6" v-model.number="epochs"></label>
+          <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4" @click.prevent="testCompute(epochs)">Start</button>
+          <div class="inline-block relative ml-1 mr-1">
+            <select class="block appearance-none w-full bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline" aria-haspopup="true" name="selectedFunc" v-model="selectedFunc">
+              <option value="linear">Linear</option>
+              <option value="hardlim">Hardlim</option>
+              <option value="sigmoid">Sigmoid</option>
+              <option value="tanh">Tanh</option>
+              <option value="relu">ReLu</option>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+              <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+            </div>
+          </div>  
         </form>
       </div>
     </div>
@@ -129,6 +142,7 @@ import {NeuralNetwork} from '../assets/nn.js'
 import numberInput from './numberInput.vue'
 import errorChart from './errorChart.vue'
 import VueSlider from 'vue-slider-component'
+import 'vue-slider-component/theme/antd.css'
 export default {
   name: 'backPropagation',
   props: {
@@ -156,6 +170,7 @@ export default {
           dataCollection: null,
           trained: false,
           network: null,
+          selectedFunc: 'sigmoid',
           colorArray : ['#f87979', '#00B3E6', '#FF33FF', '#FFFF99', '#FFB399', '#E6B333', '#3366E6', '#999966', '#99FF99', '#B34D4D']
       }
   },
@@ -166,6 +181,7 @@ export default {
     testCompute(epochs){
       this.network = new NeuralNetwork(this.config.input_nodes,this.config.hidden_nodes,this.config.output_nodes);
       this.network.setLearningRate(this.a);
+      this.network.setActivationFunction(String(this.selectedFunc));
       if(this.manualWeights){
         this.network.weights_ih = this.initialWeights_ih.copy();
         this.network.weights_ho = this.initialWeights_ho.copy();
@@ -173,7 +189,7 @@ export default {
       let errors = [];
       let tempData = null;
       for (let i = 0; i < epochs; i++) {
-        let tempData = this.network.simpleTrain(this.inputs, this.outputs);
+        let tempData = this.network.train(this.inputs, this.outputs);
         this.final_ouputs= tempData[0];
         errors.push(tempData[1]);
       }
@@ -184,8 +200,9 @@ export default {
         datasets[i] = 
           {
             label: 'Output Error #' + (i+1),
-            backgroundColor: this.colorArray[i],
-            data: this.chart_errors[i]
+            borderColor: this.colorArray[i],
+            data: this.chart_errors[i],
+            fill: false
           }
       }
       let labels = []

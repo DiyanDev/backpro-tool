@@ -1,6 +1,3 @@
-// let m = new Matrix(3,2);
-
-
 export default class Matrix {
   constructor(rows, cols) {
     this.rows = rows;
@@ -143,7 +140,3 @@ export default class Matrix {
     return matrix;
   }
 }
-
-// if (typeof module !== 'undefined') {
-//   module.exports.className = Matrix;
-// }

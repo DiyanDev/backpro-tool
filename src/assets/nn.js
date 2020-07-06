@@ -8,15 +8,28 @@ class ActivationFunction {
   }
 }
 
-let sigmoid = new ActivationFunction(
-  x => 1 / (1 + Math.exp(-x)),
-  y => y * (1 - y)
-);
-
-let tanh = new ActivationFunction(
-  x => Math.tanh(x),
-  y => 1 - (y * y)
-);
+let activationFunctions= {
+  sigmoid: new ActivationFunction(
+    x => 1 / (1 + Math.exp(-x)),
+    y => y * (1 - y)
+  ),    
+  linear: new ActivationFunction(
+    x => x,
+    y => 1
+    ),
+  tanh: new ActivationFunction(
+    x => Math.tanh(x),
+    y => 1 - (y * y)
+  ),
+  relu: new ActivationFunction(
+    x => (x<0)?0:x,
+    y => (y<0)?0:1
+    ),
+  hardlim: new ActivationFunction(
+    x => (x >= 0) ? 1 : -1,
+    y => (y != 0) ? 0 : y // Doesn't have Derivative if 0
+  ),
+}
 
 
 export class NeuralNetwork {
@@ -66,12 +79,12 @@ export class NeuralNetwork {
     let hidden = Matrix.multiply(this.weights_ih, inputs);
     hidden.add(this.bias_h);
     // activation function!
-    // hidden.map(this.activation_function.func);
+    hidden.map(this.activation_function.func);
 
     // Generating the output's output!
     let output = Matrix.multiply(this.weights_ho, hidden);
     output.add(this.bias_o);
-    // output.map(this.activation_function.func);
+    output.map(this.activation_function.func);
 
     // Sending back to the caller!
     return output.toArray();
@@ -81,8 +94,8 @@ export class NeuralNetwork {
     this.learning_rate = learning_rate;
   }
 
-  setActivationFunction(func = sigmoid) {
-    this.activation_function = func;
+  setActivationFunction(funct = 'sigmoid') {
+    this.activation_function = activationFunctions[funct];
   }
 
   train(input_array, target_array) {
@@ -111,7 +124,6 @@ export class NeuralNetwork {
     let gradients = Matrix.map(outputs, this.activation_function.dfunc);
     gradients.multiply(output_deltas);
     gradients.multiply(this.learning_rate);
-
 
     // Calculate deltas
     let hidden_T = Matrix.transpose(hidden);
@@ -147,52 +159,6 @@ export class NeuralNetwork {
     output_deltas.round(3);
     outputs.round(3);
     return [outputs.data.flat(), output_deltas.data.flat()];
-  }
-  
-  simpleTrain(input_array, target_array) {
-    // Generating the Hidden Outputs
-    let inputs = Matrix.fromArray(input_array);
-    let hidden = Matrix.multiply(this.weights_ih, inputs);
-
-    // Generating the output's output!
-    let outputs = Matrix.multiply(this.weights_ho, hidden);
-
-    // Convert array to matrix object
-    let targets = Matrix.fromArray(target_array);
-
-    // Calculate the error
-    let output_deltas = Matrix.subtract(targets, outputs);
-    let output_errors = output_deltas.map(e => 0.5*Math.pow(e, 2));
-
-    let gradients = outputs.copy();
-    gradients.multiply(output_errors);
-    gradients.multiply(this.learning_rate);
-
-    // Calculate deltas
-    let hidden_T = Matrix.transpose(hidden);
-    let weight_ho_deltas = Matrix.multiply(gradients, hidden_T);
-    // Adjust the weights by deltas
-    this.weights_ho.add(weight_ho_deltas);
-
-    // Calculate the hidden layer errors
-    let who_t = Matrix.transpose(this.weights_ho);
-    let hidden_errors = Matrix.multiply(who_t, output_errors);
-
-    // Calculate hidden gradient
-    let hidden_gradient = hidden.copy();
-    hidden_gradient.multiply(hidden_errors);
-    hidden_gradient.multiply(this.learning_rate);
-
-    // Calcuate input->hidden deltas
-    let inputs_T = Matrix.transpose(inputs);
-    let weight_ih_deltas = Matrix.multiply(hidden_gradient, inputs_T);
-    
-    this.weights_ih.add(weight_ih_deltas);
-
-
-    output_errors.round(3);
-    outputs.round(3);
-    return [outputs.data.flat(), output_errors.data.flat()];
   }
 
   serialize() {
